@@ -41,6 +41,8 @@ class StreamVideo {
      */
     _createVideoElement() {
         const video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.setAttribute('muted', '');
         video.style.position = 'fixed';
         video.style.right = 0;
         video.style.bottom = 0;
