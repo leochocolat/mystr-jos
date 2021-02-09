@@ -1,6 +1,8 @@
-uniform sampler2D u_stream;
 uniform float u_time;
+
+uniform sampler2D u_stream;
 uniform vec2 u_resolution;
+uniform vec2 u_aspect_ratio;
 
 uniform vec3 u_color_1;
 uniform vec3 u_color_2;

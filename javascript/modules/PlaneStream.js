@@ -74,10 +74,13 @@ class PlaneStream extends THREE.Object3D {
             u_stream: { value: texture },
             u_time: { value: 0 },
             u_resolution: { value: new THREE.Vector2(this._width, this._height) },
+            u_aspect_ratio: { value: new THREE.Vector2(this._stream.width, this._stream.height) },
             u_color_1: { value: new THREE.Color(this._settings.color1) },
             u_color_2: { value: new THREE.Color(this._settings.color2) },
             u_color_3: { value: new THREE.Color(this._settings.color3) },
         }
+
+        console.log(this._stream);
 
         const material = new THREE.ShaderMaterial({
             uniforms,

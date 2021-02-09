@@ -16,15 +16,13 @@ class StreamVideo {
     }
 
     getStreamVideo() {
-        const constraints = { video: { width: 1600 / 100, height: 900 / 100 } };
+        const constraints = { video: { width: 1600, height: 900 } };
 
         const promise = new Promise((resolve, reject) => {
             navigator.mediaDevices.getUserMedia(constraints)
             .then((mediaStream) => {
                 this._isStreamAvailable = true;
                 this._video.srcObject = mediaStream;
-                this._video.width = constraints.video.width;
-                this._video.height = constraints.video.height;
                 this._video.play();
                 resolve(this._video);
             })
@@ -43,6 +41,8 @@ class StreamVideo {
         const video = document.createElement('video');
         video.setAttribute('playsinline', '');
         video.setAttribute('muted', '');
+        video.width = 1600;
+        video.height = 900;
         video.style.position = 'fixed';
         video.style.right = 0;
         video.style.bottom = 0;
