@@ -2,7 +2,7 @@
 import * as THREE from 'three'; 
 
 // Modules
-import PlaneStream from './PlaneStream';
+import PlaneStream from '../objects/PlaneStream';
 
 const PESPECTIVE = 800;
 

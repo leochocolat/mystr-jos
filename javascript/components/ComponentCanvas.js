@@ -8,7 +8,7 @@ import WindowResizeObserver from '../utils/WindowResizeObserver';
 
 // Modules
 import StreamVideo from '../modules/StreamVideo';
-import SceneStream from '../modules/SceneStream';
+import SceneStream from '../webgl/scenes/SceneStream';
 
 class ComponentCanvas {
     constructor(options) {
@@ -63,7 +63,7 @@ class ComponentCanvas {
     _setupScene() {
         this._scene = new SceneStream({
             renderer: this._renderer,
-            stream: this._streamVideo.video,
+            stream: this._streamVideo,
             width: this._width,
             height: this._height,
             debugger: this._debugger
@@ -72,6 +72,11 @@ class ComponentCanvas {
 
     _setupDebug() {
         this._debugger = new Tweakpane({ title: 'Debugger', expanded: true });
+
+        this._debugger.addButton({ title: 'Switch Camera' }).on('click', () => {
+            this._streamVideo.switchFacingMode();
+        });
+
         this._debugger.addInput(this._settings, 'scale', { min: 0.01, max: 1 }).on('change', () => {
             this._resize(WindowResizeObserver.width, WindowResizeObserver.height);
         });

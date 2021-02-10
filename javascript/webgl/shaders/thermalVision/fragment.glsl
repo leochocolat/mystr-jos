@@ -92,7 +92,7 @@ vec3 thermal_vision(in vec3 color) {
 void mainImage(out vec4 fragColor, in vec2 fragCoord)
 {   
 	vec2 uv = v_uv;
-	vec3 color = texture2D(u_stream, uv).rgb;
+	vec4 color = texture2D(u_stream, uv);
 	color.rgb = thermal_vision(color.rgb);
 
 	vec2 sd_uv = scandistort(uv);
@@ -108,11 +108,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
 	vec3 scanline_color = vec3(scanline(crt_uv));
 	vec3 slowscan_color = vec3(slowscan(crt_uv));
 
-	fragColor.rgb = mix(color, mix(scanline_color, slowscan_color, 0.5), 0.05) * noise(uv);
+	fragColor.rgb = mix(color.rgb, mix(scanline_color, slowscan_color, 0.5), 0.05) * noise(uv);
     
     fragColor = vec4(thermal_vision(fragColor.rgb), 1.0);
-
-	// fragColor = vec4(color, 1.0);
 }
 
 void main() {

@@ -1,6 +1,15 @@
 class StreamVideo {
     constructor() {
         this._isStreamAvailable = false;
+
+        this._contraints = {
+            video: {
+                width: { ideal: 1600 }, 
+                height: { ideal: 900 },
+                facingMode: 'user'
+            }
+        }
+
         this._video = this._createVideoElement();
     }
 
@@ -16,11 +25,10 @@ class StreamVideo {
     }
 
     getStreamVideo() {
-        const constraints = { video: { width: 1600, height: 900 } };
-
         const promise = new Promise((resolve, reject) => {
-            navigator.mediaDevices.getUserMedia(constraints)
+            navigator.mediaDevices.getUserMedia(this._contraints)
             .then((mediaStream) => {
+                this._videoTrack = mediaStream.getVideoTracks()[0];
                 this._isStreamAvailable = true;
                 this._video.srcObject = mediaStream;
                 this._video.play();
@@ -32,6 +40,11 @@ class StreamVideo {
         });
 
         return promise;
+    }
+
+    switchFacingMode() {
+        this._contraints.video.facingMode = this._contraints.video.facingMode === 'user' ? 'environment' : 'user';
+        this._videoTrack.applyConstraints(this._contraints);
     }
 
     /**
