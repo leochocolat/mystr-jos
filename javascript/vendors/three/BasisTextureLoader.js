@@ -1,6 +1,5 @@
 import {
 	CompressedTexture,
-	CubeReflectionMapping,
 	CubeTexture,
 	FileLoader,
 	LinearFilter,
@@ -30,9 +29,6 @@ import {
  * This loader parallelizes the transcoding process across a configurable number
  * of web workers, before transferring the transcoded compressed texture back
  * to the main thread.
- * 
- * Todo : 
- * - Use buffer for cubetextures
  */
 var BasisTextureLoader = function ( manager ) {
 
@@ -190,28 +186,25 @@ BasisTextureLoader.prototype = Object.assign( Object.create( Loader.prototype ),
 					// Todo : Handle mimaps for CubeTexture
 					var textures = [];
 
-					for (var i = 0; i < cubeImages.length; i++) {
+					for ( var i = 0; i < cubeImages.length; i ++ ) {
 
-						var texture = new CompressedTexture( [cubeImages[i]], width, height, format, UnsignedByteType );
-
-						// maybe?
-						// var texture = new CompressedTexture( cubeImages[i].mipmaps, width, height, format, UnsignedByteType );
+						var texture = new CompressedTexture( [ cubeImages[ i ] ], width, height, format, UnsignedByteType );
 
 						texture.minFilter = LinearFilter;
 						texture.magFilter = LinearFilter;
 						texture.generateMipmaps = false;
 						texture.needsUpdate = true;
 
-						textures.push(texture);
+						textures.push( texture );
 						
 					}
 
-					const cubemap = new CubeTexture(textures);
+					const cubemap = new CubeTexture( textures );
 
-					cubemap.minFilter = textures[0].minFilter;
-					cubemap.magFilter = textures[0].magFilter;
-					cubemap.format = textures[0].format;
-					cubemap.encoding = textures[0].encoding;
+					cubemap.minFilter = textures[ 0 ].minFilter;
+					cubemap.magFilter = textures[ 0 ].magFilter;
+					cubemap.format = textures[ 0 ].format;
+					cubemap.encoding = textures[ 0 ].encoding;
 					cubemap.generateMipmaps = false;
 					cubemap.needsUpdate = true;
 
@@ -644,7 +637,6 @@ BasisTextureLoader.BasisWorker = function () {
 
 		}
 
-		// 
 		if ( numImages === 1 ) {
 
 			var mipmaps = [];
@@ -685,7 +677,7 @@ BasisTextureLoader.BasisWorker = function () {
 
 			var cubeImages = [];
 
-			for ( var i = 0; i < numImages; i++ ) {
+			for ( var i = 0; i < numImages; i ++ ) {
 
 				var mip = 0;
 				
