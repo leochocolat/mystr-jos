@@ -36,6 +36,9 @@ class ThermalVisionMaterial extends THREE.ShaderMaterial {
             ]
         }
 
+        this._width = options.width;
+        this._height = options.height;
+
         this._stream = options.stream;
         this._debugger = options.debugger;
         this.uniforms = this._setupUniforms();

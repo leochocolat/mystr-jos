@@ -9,6 +9,7 @@ import WindowResizeObserver from '../utils/WindowResizeObserver';
 // Modules
 import StreamVideo from '../modules/StreamVideo';
 import SceneStream from '../webgl/scenes/SceneStream';
+import BasisScene from '../webgl/scenes/BasisScene';
 
 class ComponentCanvas {
     constructor(options) {
@@ -53,7 +54,7 @@ class ComponentCanvas {
 
     _setupWebGL() {
         this._renderer = new THREE.WebGLRenderer({
-            antialias: false,
+            antialias: true,
             canvas: this.el,
         });
 
@@ -61,9 +62,16 @@ class ComponentCanvas {
     }
 
     _setupScene() {
-        this._scene = new SceneStream({
+        // this._scene = new SceneStream({
+        //     renderer: this._renderer,
+        //     stream: this._streamVideo,
+        //     width: this._width,
+        //     height: this._height,
+        //     debugger: this._debugger
+        // });
+
+        this._scene = new BasisScene({
             renderer: this._renderer,
-            stream: this._streamVideo,
             width: this._width,
             height: this._height,
             debugger: this._debugger

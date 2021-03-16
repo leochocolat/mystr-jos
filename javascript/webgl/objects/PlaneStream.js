@@ -4,9 +4,6 @@ import * as THREE from 'three';
 // Materials
 import ThermalVisionMaterial from '../materials/ThermalVisionMaterial';
 
-// import fragment from '../shaders/outline/fragment';
-// import vertex from '../shaders/outline/vertex';
-
 class PlaneStream extends THREE.Object3D {
     constructor(options) {
         super();
@@ -43,7 +40,9 @@ class PlaneStream extends THREE.Object3D {
     _setupMaterial() {
         const material = new ThermalVisionMaterial({
             stream: this._stream,
-            debugger: this._debugger
+            debugger: this._debugger,
+            width: this._width,
+            height: this._height
         });
 
         return material;
