@@ -5,11 +5,10 @@ import Tweakpane from 'tweakpane';
 
 // Utils
 import WindowResizeObserver from '../utils/WindowResizeObserver';
+import DeviceOrientationControls from '../utils/DeviceOrientationControls';
 
 // Modules
-import StreamVideo from '../modules/StreamVideo';
-import SceneStream from '../webgl/scenes/SceneStream';
-import BasisScene from '../webgl/scenes/BasisScene';
+import GyroscopeScene from '../webgl/scenes/GyroscopeScene';
 
 class ComponentCanvas {
     constructor(options) {
@@ -31,7 +30,6 @@ class ComponentCanvas {
         this._height = WindowResizeObserver.height * this._settings.scale;
 
         this._setupDeltaTime();
-        this._setupVideo();
         this._setupWebGL();
         this._setupDebug();
         this._setupScene();
@@ -47,11 +45,6 @@ class ComponentCanvas {
         this._fps = Math.round(1000 / this._deltaTime);
     }
 
-    _setupVideo() {
-        this._streamVideo = new StreamVideo();
-        this._streamVideo.getStreamVideo();
-    }
-
     _setupWebGL() {
         this._renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -62,15 +55,7 @@ class ComponentCanvas {
     }
 
     _setupScene() {
-        // this._scene = new SceneStream({
-        //     renderer: this._renderer,
-        //     stream: this._streamVideo,
-        //     width: this._width,
-        //     height: this._height,
-        //     debugger: this._debugger
-        // });
-
-        this._scene = new BasisScene({
+        this._scene = new GyroscopeScene({
             renderer: this._renderer,
             width: this._width,
             height: this._height,
@@ -80,24 +65,13 @@ class ComponentCanvas {
 
     _setupDebug() {
         this._debugger = new Tweakpane({ title: 'Debugger', expanded: true });
-
-        this._debugger.addButton({ title: 'Switch Camera' }).on('click', () => {
-            this._streamVideo.switchFacingMode();
-        });
-
-        this._debugger.addInput(this._settings, 'scale', { min: 0.01, max: 1 }).on('change', () => {
-            this._resize(WindowResizeObserver.width, WindowResizeObserver.height);
-        });
     }
 
     /**
      * On Tick
      */
     _update() {
-        if (!this._streamVideo.isStreamAvailable) return;
-
         this._scene.update(this._time, this._deltaTime, this._fps);
-
         this._renderer.render(this._scene, this._scene.camera);
     }
 
@@ -123,11 +97,15 @@ class ComponentCanvas {
     _bindAll() {
         this._resizeHandler = this._resizeHandler.bind(this);
         this._tickHandler = this._tickHandler.bind(this);
+        this._clickHandler = this._clickHandler.bind(this);
+        this._deviceorientationHandler = this._deviceorientationHandler.bind(this);
     }
 
     _setupEventListeners() {
         WindowResizeObserver.addEventListener('resize', this._resizeHandler);
         gsap.ticker.add(this._tickHandler);
+        this.el.addEventListener('click', this._clickHandler);
+        // window.addEventListener('deviceorientation', this._deviceorientationHandler);
     }
 
     /**
@@ -141,6 +119,18 @@ class ComponentCanvas {
     _tickHandler() {
         this._update();
         this._updateDeltaTime();
+
+        if (!this._controls) return;
+        this._controls.update();
+    }
+
+    _clickHandler() {
+        this._deviceOrientationControls = new DeviceOrientationControls();
+        this._deviceOrientationControls.addEventListener('deviceorientation', this._deviceorientationHandler);
+    }
+
+    _deviceorientationHandler(e) {
+        this._scene.deviceorientation(e);
     }
 }
 
