@@ -12,6 +12,10 @@ class GyroscopeScene extends Scene {
             damping: 0.1,
         };
 
+        this._cameraRotation = {
+            target: new Euler(),
+        }
+
         this._initialDeviceEuler = null;
 
         this._renderer = options.renderer;
@@ -34,7 +38,7 @@ class GyroscopeScene extends Scene {
     }
 
     update(time, deltaTime, fps) {
-        this._updateCameraPosition();   
+        this._updateCameraRotation();   
     }
 
     resize(width, height) {
@@ -81,17 +85,8 @@ class GyroscopeScene extends Scene {
         const amplitudeX = math.degToRad(this._settings.rotationAmplitude.x);
         const amplitudeY = math.degToRad(this._settings.rotationAmplitude.y);
 
-        // Clamp to max amplitude
-        const targetRotationX = math.clamp(finalEuler.x, -amplitudeX, amplitudeX);
-        const targetRotationY = math.clamp(finalEuler.y, -amplitudeY, amplitudeY);
-
-        // Lerp camera rotation
-        this._camera.rotation.x = math.lerp(this._camera.rotation.x, targetRotationX, this._settings.damping);
-        this._camera.rotation.y = math.lerp(this._camera.rotation.y, targetRotationY, this._settings.damping);
-
-        // Without Lerp
-        // this._camera.rotation.x = targetRotationX;
-        // this._camera.rotation.y = targetRotationY;
+        this._cameraRotation.target.x = math.clamp(finalEuler.x, -amplitudeX, amplitudeX);
+        this._cameraRotation.target.y = math.clamp(finalEuler.y, -amplitudeY, amplitudeY);
     }
 
     devicemotion(e) {}
@@ -134,8 +129,14 @@ class GyroscopeScene extends Scene {
         return model;
     }
 
-    _updateCameraPosition() {
-        
+    _updateCameraRotation() {
+        // Lerp camera rotation
+        this._camera.rotation.x = math.lerp(this._camera.rotation.x, this._cameraRotation.target.x, this._settings.damping);
+        this._camera.rotation.y = math.lerp(this._camera.rotation.y, this._cameraRotation.target.y, this._settings.damping);
+
+        // Without Lerp
+        // this._camera.rotation.x = this._cameraRotation.target.x;
+        // this._camera.rotation.y = this._cameraRotation.target.y;
     }
 
     _setupDebug() {

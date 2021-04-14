@@ -66,6 +66,16 @@ class ComponentCanvas {
 
     _setupDebug() {
         this._debugger = new Tweakpane({ title: 'Debugger', expanded: true });
+
+        const performanceFolder = this._debugger.addFolder({ title: 'Performances', expanded: true });
+
+        performanceFolder.addMonitor(this, '_fps', { label: 'FPS' });
+        performanceFolder.addMonitor(this, '_fps', {
+            label: 'FPS GRAPH',
+            view: 'graph',
+            min: 0,
+            max: 100,
+        });
     }
 
     /**
