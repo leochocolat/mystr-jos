@@ -6,6 +6,7 @@ import map from './map';
 import modulo from './modulo';
 import angle from './angle';
 import degToRad from './degToRad';
+import radToDeg from './radToDeg';
 
 export default {
     clamp,
@@ -16,4 +17,5 @@ export default {
     modulo,
     angle,
     degToRad,
+    radToDeg
 };

@@ -1,26 +1,18 @@
 // Vendor
-import * as THREE from 'three';
+import { Scene, PerspectiveCamera, MeshNormalMaterial, Euler, Quaternion, Vector3 } from 'three';
 import ThreeGLTFDracoLoader from '../../loaders/ThreeGLTFDracoLoader';
+import math from '../../utils/math';
 
-class GyroscopeScene extends THREE.Scene {
+class GyroscopeScene extends Scene {
     constructor(options) {
         super();
 
         this._settings = {
-            positionFactor: { x: 5, y: 2 },
-            rotationFactor: { x: -30, y: 30 },// Degrees
+            rotationAmplitude: { x: 30, y: 30 },
             damping: 0.1,
         };
 
-        this._cameraPosition = {
-            current: new THREE.Vector3(0, 0, 0),
-            target: new THREE.Vector3(0, 0, 0),
-        };
-
-        this._cameraRotation = {
-            current: new THREE.Vector3(0, 0, 0),
-            target: new THREE.Vector3(0, 0, 0),
-        };
+        this._initialDeviceEuler = null;
 
         this._renderer = options.renderer;
 
@@ -54,51 +46,64 @@ class GyroscopeScene extends THREE.Scene {
     }
     
     deviceorientation(e) {
-        const { alpha, beta, gamma, orient } = e;
+        let { alpha, beta, gamma, orient, initialDeviceOrientation } = e;
 
-        const zee = new THREE.Vector3(0, 0, 1);
-		const euler = new THREE.Euler();
-		const q0 = new THREE.Quaternion();
-		const q1 = new THREE.Quaternion(- Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // - PI/2 around the x-axis
+        const zee = new Vector3(0, 0, 1);
+		const q0 = new Quaternion().setFromAxisAngle(zee, -orient); // adjust for screen orientation
+		const q1 = new Quaternion(- Math.sqrt(0.5), 0, 0, Math.sqrt(0.5)); // - PI/2 around the x-axis
 
-        euler.set(beta, alpha, - gamma, 'YXZ'); // 'ZXY' for the device, but 'YXZ' for us
-        this._camera.quaternion.setFromEuler(euler); // orient the device
-        this._camera.quaternion.multiply(q1); // camera looks out the back of the device, not the top
-        this._camera.quaternion.multiply(q0.setFromAxisAngle(zee, -orient)); // adjust for screen orientation
+        // Device
+        const deviceEuler = new Euler();
+        deviceEuler.set(beta, alpha, - gamma, 'YXZ'); // 'ZXY' for the device, but 'YXZ' for us
 
-        // console.log('rotation y ' + deviceRotationY);
-        // console.log('rotation x ' + deviceRotationX);
+        const deviceQuaternion = new Quaternion();
+        deviceQuaternion.setFromEuler(deviceEuler); // orient the device
+        deviceQuaternion.multiply(q1);
+        deviceQuaternion.multiply(q0);
+
+        // Get initial Initial Device euler if not defined
+        if (!this._initialDeviceEuler) {
+            const initialDeviceEuler = new Euler();
+            initialDeviceEuler.set(initialDeviceOrientation.beta, initialDeviceOrientation.alpha, - initialDeviceOrientation.gamma, 'YXZ'); // 'ZXY' for the device, but 'YXZ' for us
+
+            const initialDeviceQuaternion = new Quaternion();
+            initialDeviceQuaternion.setFromEuler(initialDeviceEuler);
+            initialDeviceQuaternion.multiply(q1);
+            initialDeviceQuaternion.multiply(q0);
+
+            this._initialDeviceEuler = new Euler().setFromQuaternion(initialDeviceQuaternion);
+        }
         
-        // const positionFactor = this._settings.positionFactor;
-        // const rotationFactor = this._settings.rotationFactor;
+        // Transform to Euler angle
+        const finalEuler = new Euler().setFromQuaternion(deviceQuaternion);
+        finalEuler.x -= this._initialDeviceEuler.x; // Look Forward
 
-        // // Position
-        // this._cameraPosition.target.x = deviceRotationY * positionFactor.x;
-        // this._cameraPosition.target.y = deviceRotationX * positionFactor.y;
+        const amplitudeX = math.degToRad(this._settings.rotationAmplitude.x);
+        const amplitudeY = math.degToRad(this._settings.rotationAmplitude.y);
 
-        // // Rotation
-        // this._cameraRotation.target.x = deviceRotationX * rotationFactor.x * (Math.PI / 180);
-        // this._cameraRotation.target.y = deviceRotationY * rotationFactor.y * (Math.PI / 180);
+        // Clamp to max amplitude
+        const targetRotationX = math.clamp(finalEuler.x, -amplitudeX, amplitudeX);
+        const targetRotationY = math.clamp(finalEuler.y, -amplitudeY, amplitudeY);
+
+        // Lerp camera rotation
+        this._camera.rotation.x = math.lerp(this._camera.rotation.x, targetRotationX, this._settings.damping);
+        this._camera.rotation.y = math.lerp(this._camera.rotation.y, targetRotationY, this._settings.damping);
+
+        // Without Lerp
+        // this._camera.rotation.x = targetRotationX;
+        // this._camera.rotation.y = targetRotationY;
     }
+
+    devicemotion(e) {}
 
     /**
      * Private
      */
     _setupCamera() {
-        const camera = new THREE.PerspectiveCamera(75, this._width / this._height, 0.1, 10000);
+        const camera = new PerspectiveCamera(75, this._width / this._height, 0.1, 10000);
         camera.position.z = -1;
 
         return camera;
-    }
-
-    _setupCube() {
-        const geometry = new THREE.BoxGeometry(this._width / 3, this._width / 3, this._width / 3);
-        const material = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide });
-        const mesh = new THREE.Mesh(geometry, material);
-
-        this.add(mesh);
-
-        return mesh;
     }
 
     _setupModel() {
@@ -112,15 +117,14 @@ class GyroscopeScene extends THREE.Scene {
             
             model = response.scene;
 
-            model.position.y = 10;
-
             model.traverse(child => {
                 if (child.isMesh) {
-                    child.material = new THREE.MeshNormalMaterial();
+                    child.material = new MeshNormalMaterial();
                 };
             })
 
             this._camera = response.cameras[0];
+            this._camera.position.z -= 50;
             this._camera.aspect = this._width / this._height;
             this._camera.updateProjectionMatrix();
 
@@ -131,29 +135,14 @@ class GyroscopeScene extends THREE.Scene {
     }
 
     _updateCameraPosition() {
-        const damping = this._settings.damping;
-
-        // Position
-        // this._cameraPosition.current.x = math.lerp(this._cameraPosition.current.x, this._cameraPosition.target.x, damping);
-        // this._cameraPosition.current.y = math.lerp(this._cameraPosition.current.y, this._cameraPosition.target.y, damping);
-
-        // Rotation
-        // this._cameraRotation.current.x = math.lerp(this._cameraRotation.current.x, this._cameraRotation.target.x, damping);
-        // this._cameraRotation.current.y = math.lerp(this._cameraRotation.current.y, this._cameraRotation.target.y, damping);
-
-        // console.log(this._cameraPosition.current);
-
-        // this._camera.position.set(this._cameraPosition.target.x, this._cameraPosition.target.y, this._cameraPosition.target.z);
-        // this._camera.rotation.set(this._cameraRotation.target.x, this._cameraRotation.target.y, this._cameraRotation.target.z);
+        
     }
 
     _setupDebug() {
         const GyroSceneFolder = this._debugger.addFolder({ title: 'Gyro Scene' });
-        GyroSceneFolder.addInput(this._settings.positionFactor, 'x', { label: 'pos factor x', min: -100, max: 100 });
-        GyroSceneFolder.addInput(this._settings.positionFactor, 'y', { label: 'pos factor y', min: -100, max: 100 });
-        GyroSceneFolder.addInput(this._settings.rotationFactor, 'x', { label: 'rot factor x', min: -180, max: 180 });
-        GyroSceneFolder.addInput(this._settings.rotationFactor, 'y', { label: 'rot factor y', min: -180, max: 180 });
-        GyroSceneFolder.addInput(this._settings, 'damping', { min: -1, max: 1 });
+        GyroSceneFolder.addInput(this._settings.rotationAmplitude, 'x', { label: 'amplitude x', min: 0, max: 90 });
+        GyroSceneFolder.addInput(this._settings.rotationAmplitude, 'y', { label: 'amplitude y', min: 0, max: 90 });
+        GyroSceneFolder.addInput(this._settings, 'damping', { min: 0, max: 1 });
 
         return GyroSceneFolder;
     }
