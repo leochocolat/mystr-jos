@@ -1,7 +1,6 @@
 // Vendor
-import { Scene, PerspectiveCamera, MeshNormalMaterial, Euler, Quaternion, Vector3 } from 'three';
+import { Scene, PerspectiveCamera, MeshNormalMaterial } from 'three';
 import ThreeGLTFDracoLoader from '../../loaders/ThreeGLTFDracoLoader';
-import math from '../../utils/math';
 import DeviceOrientationControls from '../../utils/DeviceOrientationControls';
 
 class GyroscopeScene extends Scene {
