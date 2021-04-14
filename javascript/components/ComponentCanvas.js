@@ -5,8 +5,6 @@ import Tweakpane from 'tweakpane';
 
 // Utils
 import WindowResizeObserver from '../utils/WindowResizeObserver';
-import DeviceOrientationObserver from '../utils/DeviceOrientationObserver';
-import DeviceMotionObserver from '../utils/DeviceMotionObserver';
 
 // Modules
 import GyroscopeScene from '../webgl/scenes/GyroscopeScene';
@@ -108,15 +106,11 @@ class ComponentCanvas {
     _bindAll() {
         this._resizeHandler = this._resizeHandler.bind(this);
         this._tickHandler = this._tickHandler.bind(this);
-        this._clickHandler = this._clickHandler.bind(this);
-        this._deviceorientationHandler = this._deviceorientationHandler.bind(this);
-        this._deviceMotionHandler = this._deviceMotionHandler.bind(this);
     }
 
     _setupEventListeners() {
         WindowResizeObserver.addEventListener('resize', this._resizeHandler);
         gsap.ticker.add(this._tickHandler);
-        this.el.addEventListener('click', this._clickHandler);    
     }
 
     /**
@@ -133,22 +127,6 @@ class ComponentCanvas {
 
         if (!this._controls) return;
         this._controls.update();
-    }
-
-    _clickHandler() {
-        this._deviceOrientationObserver = new DeviceOrientationObserver();
-        this._deviceOrientationObserver.addEventListener('deviceorientation', this._deviceorientationHandler);
-
-        this._deviceMotionObserver = new DeviceMotionObserver();
-        this._deviceMotionObserver.addEventListener('devicemotion', this._deviceMotionHandler);
-    }
-
-    _deviceorientationHandler(e) {
-        this._scene.deviceorientation(e);
-    }
-
-    _deviceMotionHandler(e) {
-        this._scene.devicemotion(e);
     }
 }
 
