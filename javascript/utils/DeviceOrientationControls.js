@@ -128,6 +128,25 @@ class DeviceOrientationControls extends EventDispatcher {
         this._damping = null;
     }
 
+    requestPermission() {
+        if (this._isAllowed) return;
+        
+        return new Promise((resolve, reject) => {
+            this._isAllowed = true;
+            window.DeviceOrientationEvent.requestPermission()
+                .catch((error) => {
+                    reject(new Error('DeviceOrientationObserver: Unable to use DeviceOrientation API:', error));
+                })
+                .then((response) => {
+                    resolve(response);
+
+                    if (response === 'granted') {
+                        this._isAllowed = true;
+                    }
+                });
+        })
+    }
+
     /**
      * Private
      */
